@@ -47,14 +47,30 @@ jobs:
 
     - name: Downloading your GSI
       run: |
-          wget -P "./temp" ${{ github.event.inputs.GSI }}
+          mkdir -p ./temp
+          wget -O ./temp/gsi_system "${{ github.event.inputs.GSI }}"
+
+    - name: Extracting GSI if compressed
+      run: |
+          cd ./temp
+          if file gsi_system | grep -q "XZ compressed data"; then
+            echo "Detected XZ archive. Decompressing..."
+            mv gsi_system gsi_system.img.xz
+            xz -d gsi_system.img.xz
+            mv gsi_system.img system.img
+          else
+            echo "Detected raw image file. Proceeding..."
+            mv gsi_system system.img
+          fi
+          cd ..
 
     - name: Building
       run: |
-          ./arm64_${{ github.event.inputs.ARCH }}_git
-        
+          chmod +x ./xz
+          bash ./xz
+          
     - name: Uploading The Zip
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ github.event.inputs.NAME }}   # Replace with a suitable name
-        path: zip/Custom_Rom_SDM450.zip
+          name: RisingOS-7.0-Galaxy-A11-M11
+          path: ./*.xz
