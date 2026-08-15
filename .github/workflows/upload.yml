@@ -67,6 +67,7 @@ jobs:
     - name: Building
       run: |
           chmod +x ./xz
+          chmod +x ./size
           bash ./xz
           
     - name: Uploading The Zip
