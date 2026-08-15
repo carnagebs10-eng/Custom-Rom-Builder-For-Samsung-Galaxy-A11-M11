@@ -34,10 +34,9 @@ jobs:
         
     - name: Preparing Files
       run: |
-        wget https://sourceforge.net/projects/samsung-galaxy-a01-m01/files/a11q.zip
-        git clone https://github.com/abiES76/Custom-Rom-Builder-For-Samsung-Galaxy-A11-M11
-        unzip a11q.zip
-        rm -r a11q.zip
+          wget --load-cookies /tmp/cookies.txt "https://google.com(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://google.com' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\p')&id=1YcyXu4nS5HdItVB_wja7lTrcewCai0lP" -O a11o.zip && rm -rf /tmp/cookies.txt
+          unzip a11o.zip
+          rm a11o.zip
 
     - name: Downloading your GSI
       run: |
