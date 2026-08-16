@@ -111,22 +111,25 @@ jobs:
           cd ../../../..
         fi
           
-        # 6. Copy your fresh kernel components cleanly using absolute workspace paths
-        cp "$GITHUB_WORKSPACE/boot" ./boot || cp "$GITHUB_WORKSPACE/temp/boot" ./boot || cp "$GITHUB_WORKSPACE/boot.img" ./boot || cp "$GITHUB_WORKSPACE/temp/boot.img" ./boot || true
+        # 6. Scan the entire workspace to auto-locate and position your boot components
+        find $GITHUB_WORKSPACE -name "boot" -o -name "boot.img" | while read -r file; do
+          if [ "$file" != "$(pwd)/boot" ]; then
+            cp "$file" ./boot && echo "Found and copied boot from: $file"
+          fi
+         done
           
-        # 7. Compress your raw super partition matrix straight to .xz layout using fast level-1
-        if [ -f "$GITHUB_WORKSPACE/super.img" ]; then
-          xz -z -1 -c "$GITHUB_WORKSPACE/super.img" > ./super.new.img.xz
-        elif [ -f "$GITHUB_WORKSPACE/temp/super.img" ]; then
-          xz -z -1 -c "$GITHUB_WORKSPACE/temp/super.img" > ./super.new.img.xz
+        # 7. Scan the workspace to auto-locate and compress your super.img block to .xz layout
+        SUPER_PATH=$(find $GITHUB_WORKSPACE -name "super.img" | head -n 1)
+        if [ ! -z "$SUPER_PATH" ]; then
+          echo "Found super.img at $SUPER_PATH. Compressing..."
+          xz -z -1 -c "$SUPER_PATH" > ./super.new.img.xz
         else
-          cp "$GITHUB_WORKSPACE/super.new.img.xz" ./super.new.img.xz || cp "$GITHUB_WORKSPACE/temp/super.new.img.xz" ./super.new.img.xz || true
+          # Fallback check if the tool already outputted a pre-compressed .xz file
+          XZ_PATH=$(find $GITHUB_WORKSPACE -name "super.new.img.xz" | head -n 1)
+          if [ ! -z "$XZ_PATH" ] && [ "$XZ_PATH" != "$(pwd)/super.new.img.xz" ]; then
+            cp "$XZ_PATH" ./super.new.img.xz && echo "Found and copied pre-built XZ from: $XZ_PATH"
+          fi
         fi
-          
-        # 8. Move up and package the clean folder tree structure into your final ZIP
-        cd ..
-        zip -r ../RisingOS-7.0-Galaxy-A11-M11-Flashable.zip RisingOS-7.0-Galaxy-A11-M11/
-        cd ..
 
     - name: Uploading The Zip
       uses: actions/upload-artifact@v4
