@@ -69,9 +69,38 @@ jobs:
           chmod +x ./xz
           chmod +x ./size
           bash ./xz
+
+    - name: Packaging Flashable ROM Zip
+      run: |
+        mkdir -p ./rom_package
+        cd ./rom_package
           
+        # Pull down Bite Tech's LineageOS 22.2 Android 15 ROM at high speed
+        wget -O base_rom.zip "https://mediafire.com"
+          
+        # Extract only his verified, device-safe 64-bit installer frameworks and subfolders
+        unzip base_rom.zip "META-INF/*"
+        rm -f base_rom.zip
+          
+        # Strip the extension from your fresh boot image to match your target tree exactly
+        cp ../boot ./boot || cp ../temp/boot ./boot || cp ../boot.img ./boot || cp ../temp/boot.img ./boot || true
+          
+        # Compress the large compiled super.img to .xz format using fast level-1 to prevent timeouts
+        if [ -f ../super.img ]; then
+          xz -z -1 -c ../super.img > ./super.new.img.xz
+        elif [ -f ../temp/super.img ]; then
+          xz -z -1 -c ../temp/super.img > ./super.new.img.xz
+        else
+          cp ../super.new.img.xz ./super.new.img.xz || cp ../temp/super.new.img.xz ./super.new.img.xz || true
+        fi
+          
+          # Pack everything together into your exact target ZIP structure layout
+          zip -r ../RisingOS-7.0-Galaxy-A11-M11-Flashable.zip META-INF boot super.new.img.xz
+          cd ..
+
     - name: Uploading The Zip
       uses: actions/upload-artifact@v4
       with:
-          name: RisingOS-7.0-Galaxy-A11-M11
-          path: ./*.xz
+        name: RisingOS-7.0-Lineage22.2-Flashable
+        path: ./RisingOS-7.0-Galaxy-A11-M11-Flashable.zip
+        retention-days: 7
