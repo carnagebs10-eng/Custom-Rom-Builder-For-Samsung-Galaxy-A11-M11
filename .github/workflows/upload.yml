@@ -138,6 +138,6 @@ jobs:
     - name: Uploading The Zip
       uses: actions/upload-artifact@v4
       with:
-        name: RisingOS-7.0-Revived-M11/A11-Flashable
+        name: RisingOS-7.0-Revived-M11-A11-Flashable
         path: ${{ github.workspace }}/RisingOS-7.0-Galaxy-A11-M11-Flashable.zip
         retention-days: 7
