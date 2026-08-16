@@ -111,22 +111,22 @@ jobs:
           cd ../../../..
         fi
           
-        # 6. Copy your fresh kernel components cleanly (no file extension)
-        cp ../../../boot ./boot || cp ../../../temp/boot ./boot || cp ../../../boot.img ./boot || cp ../../../temp/boot.img ./boot || true
+        # 6. Copy your fresh kernel components cleanly using absolute workspace paths
+        cp "$GITHUB_WORKSPACE/boot" ./boot || cp "$GITHUB_WORKSPACE/temp/boot" ./boot || cp "$GITHUB_WORKSPACE/boot.img" ./boot || cp "$GITHUB_WORKSPACE/temp/boot.img" ./boot || true
           
         # 7. Compress your raw super partition matrix straight to .xz layout using fast level-1
-        if [ -f ../../../super.img ]; then
-          xz -z -1 -c ../../../super.img > ./super.new.img.xz
-        elif [ -f ../../../temp/super.img ]; then
-          xz -z -1 -c ../../../temp/super.img > ./super.new.img.xz
+        if [ -f "$GITHUB_WORKSPACE/super.img" ]; then
+          xz -z -1 -c "$GITHUB_WORKSPACE/super.img" > ./super.new.img.xz
+        elif [ -f "$GITHUB_WORKSPACE/temp/super.img" ]; then
+          xz -z -1 -c "$GITHUB_WORKSPACE/temp/super.img" > ./super.new.img.xz
         else
-          cp ../../../super.new.img.xz ./super.new.img.xz || cp ../../../temp/super.new.img.xz ./super.new.img.xz || true
+          cp "$GITHUB_WORKSPACE/super.new.img.xz" ./super.new.img.xz || cp "$GITHUB_WORKSPACE/temp/super.new.img.xz" ./super.new.img.xz || true
         fi
           
-          # 8. Move up and package the clean folder tree structure into your final ZIP
-          cd ..
-          zip -r ../RisingOS-7.0-Galaxy-A11-M11-Flashable.zip RisingOS-7.0-Galaxy-A11-M11/
-          cd ..
+        # 8. Move up and package the clean folder tree structure into your final ZIP
+        cd ..
+        zip -r ../RisingOS-7.0-Galaxy-A11-M11-Flashable.zip RisingOS-7.0-Galaxy-A11-M11/
+        cd ..
 
     - name: Uploading The Zip
       uses: actions/upload-artifact@v4
