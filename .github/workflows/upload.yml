@@ -72,14 +72,16 @@ jobs:
 
     - name: Packaging Flashable ROM Zip
       run: |
-        # 1. Create a dedicated outer workspace distribution directory
-        mkdir -p ./rom_package/RisingOS-7.0-Galaxy-A11-M11
+        # 1. Create the exact nested folder structure your recovery expects
+        mkdir -p ./rom_package/RisingOS-7.0-Galaxy-A11-M11/META-INF
         cd ./rom_package/RisingOS-7.0-Galaxy-A11-M11
           
-        # 2. Extract your custom LineageOS 22.2 META-INF structure locally inside it
+        # 2. Extract your folders directly into the newly created META-INF wrapper directory
+        cd META-INF
         unzip "$GITHUB_WORKSPACE/meta.zip"
+        cd ..
           
-        # 3. Update the extra addons folder configuration properties
+        # 3. Update the extra addons folder configuration properties inside your new path
         if [ -d "./META-INF/addons/extra" ]; then
           cd ./META-INF/addons/extra
           echo "rom_name=RisingOS-Revived-7.0" > extra.txt
@@ -111,29 +113,28 @@ jobs:
           cd ../../../..
         fi
           
-        # 6. Scan the entire workspace to auto-locate and position your boot components
-        find $GITHUB_WORKSPACE -name "boot" -o -name "boot.img" | while read -r file; do
-          if [ "$file" != "$(pwd)/boot" ]; then
-            cp "$file" ./boot && echo "Found and copied boot from: $file"
-          fi
-         done
+        # 6. Copy your fresh kernel components cleanly (no file extension)
+        cp "$GITHUB_WORKSPACE/boot" ./boot || cp "$GITHUB_WORKSPACE/temp/boot" ./boot || cp "$GITHUB_WORKSPACE/boot.img" ./boot || cp "$GITHUB_WORKSPACE/temp/boot.img" ./boot || true
           
-        # 7. Scan the workspace to auto-locate and compress your super.img block to .xz layout
-        SUPER_PATH=$(find $GITHUB_WORKSPACE -name "super.img" | head -n 1)
-        if [ ! -z "$SUPER_PATH" ]; then
-          echo "Found super.img at $SUPER_PATH. Compressing..."
-          xz -z -1 -c "$SUPER_PATH" > ./super.new.img.xz
+        # 7. Auto-Locate your super image matrix using broad scanning to capture raw or pre-built XZ blocks
+        RAW_SUPER=$(find $GITHUB_WORKSPACE -name "super.img" -o -name "super.new.img" | head -n 1)
+        BUILT_XZ=$(find $GITHUB_WORKSPACE -name "super.new.img.xz" -o -name "super.img.xz" | head -n 1)
+          
+        if [ ! -z "$RAW_SUPER" ]; then
+          echo "Found raw image at $RAW_SUPER. Running fast compression..."
+          xz -z -1 -c "$RAW_SUPER" > ./super.new.img.xz
+        elif [ ! -z "$BUILT_XZ" ] && [ "$BUILT_XZ" != "$(pwd)/super.new.img.xz" ]; then
+          echo "Found pre-built compressed block at $BUILT_XZ. Copying over..."
+          cp "$BUILT_XZ" ./super.new.img.xz
         else
-          # Fallback check if the tool already outputted a pre-compressed .xz file
-          XZ_PATH=$(find $GITHUB_WORKSPACE -name "super.new.img.xz" | head -n 1)
-          if [ ! -z "$XZ_PATH" ] && [ "$XZ_PATH" != "$(pwd)/super.new.img.xz" ]; then
-            cp "$XZ_PATH" ./super.new.img.xz && echo "Found and copied pre-built XZ from: $XZ_PATH"
-          fi
+          echo "Checking fallback directory maps..."
+          cp $GITHUB_WORKSPACE/super.new.img.xz ./super.new.img.xz || cp $GITHUB_WORKSPACE/temp/super.new.img.xz ./super.new.img.xz || true
         fi
-        
-        # 8. Jump straight back to the main workspace using absolute paths and compress
-        cd $GITHUB_WORKSPACE/rom_package
+          
+        # 8. Move up and package the clean folder tree structure into your final ZIP
+        cd ..
         zip -r $GITHUB_WORKSPACE/RisingOS-7.0-Galaxy-A11-M11-Flashable.zip RisingOS-7.0-Galaxy-A11-M11/
+        cd ..
 
     - name: Uploading The Zip
       uses: actions/upload-artifact@v4
