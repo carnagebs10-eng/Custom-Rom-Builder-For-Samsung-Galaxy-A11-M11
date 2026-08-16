@@ -130,10 +130,14 @@ jobs:
             cp "$XZ_PATH" ./super.new.img.xz && echo "Found and copied pre-built XZ from: $XZ_PATH"
           fi
         fi
+        
+        # 8. Jump straight back to the main workspace using absolute paths and compress
+        cd $GITHUB_WORKSPACE/rom_package
+        zip -r $GITHUB_WORKSPACE/RisingOS-7.0-Galaxy-A11-M11-Flashable.zip RisingOS-7.0-Galaxy-A11-M11/
 
     - name: Uploading The Zip
       uses: actions/upload-artifact@v4
       with:
-        name: RisingOS-7.0-Lineage22.2-Flashable
-        path: ./RisingOS-7.0-Galaxy-A11-M11-Flashable.zip
+        name: RisingOS-7.0-Revived-M11/A11-Flashable
+        path: ${{ github.workspace }}/RisingOS-7.0-Galaxy-A11-M11-Flashable.zip
         retention-days: 7
