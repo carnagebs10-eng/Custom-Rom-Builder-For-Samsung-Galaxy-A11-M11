@@ -77,7 +77,7 @@ jobs:
         cd ./rom_package/RisingOS-7.0-Galaxy-A11-M11
           
         # 2. Extract your custom LineageOS 22.2 META-INF structure locally inside it
-        unzip ../../../meta.zip
+        unzip "$GITHUB_WORKSPACE/meta.zip"
           
         # 3. Update the extra addons folder configuration properties
         if [ -d "./META-INF/addons/extra" ]; then
