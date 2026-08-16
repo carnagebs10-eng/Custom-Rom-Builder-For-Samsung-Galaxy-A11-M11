@@ -66,36 +66,66 @@ jobs:
 
     - name: Building
       run: |
-          chmod +x ./xz
-          chmod +x ./size
-          bash ./xz
+        chmod +x ./xz
+        chmod +x ./size
+        bash ./xz
 
     - name: Packaging Flashable ROM Zip
       run: |
-        mkdir -p ./rom_package
-        cd ./rom_package
+        # 1. Create a dedicated outer workspace distribution directory
+        mkdir -p ./rom_package/RisingOS-7.0-Galaxy-A11-M11
+        cd ./rom_package/RisingOS-7.0-Galaxy-A11-M11
           
-        # Pull down Bite Tech's LineageOS 22.2 Android 15 ROM at high speed
-        wget -O base_rom.zip "https://mediafire.com"
+        # 2. Extract your custom LineageOS 22.2 META-INF structure locally inside it
+        unzip ../../../meta.zip
           
-        # Extract only his verified, device-safe 64-bit installer frameworks and subfolders
-        unzip base_rom.zip "META-INF/*"
-        rm -f base_rom.zip
-          
-        # Strip the extension from your fresh boot image to match your target tree exactly
-        cp ../boot ./boot || cp ../temp/boot ./boot || cp ../boot.img ./boot || cp ../temp/boot.img ./boot || true
-          
-        # Compress the large compiled super.img to .xz format using fast level-1 to prevent timeouts
-        if [ -f ../super.img ]; then
-          xz -z -1 -c ../super.img > ./super.new.img.xz
-        elif [ -f ../temp/super.img ]; then
-          xz -z -1 -c ../temp/super.img > ./super.new.img.xz
-        else
-          cp ../super.new.img.xz ./super.new.img.xz || cp ../temp/super.new.img.xz ./super.new.img.xz || true
+        # 3. Update the extra addons folder configuration properties
+        if [ -d "./META-INF/addons/extra" ]; then
+          cd ./META-INF/addons/extra
+          echo "rom_name=RisingOS-Revived-7.0" > extra.txt
+          echo "android_version=15" >> extra.txt
+          echo "architecture=arm64" >> extra.txt
+          zip -m extra.zip adb simg2img superrepack superunpack info extra.txt
+          cd ../../../..
         fi
           
-          # Pack everything together into your exact target ZIP structure layout
-          zip -r ../RisingOS-7.0-Galaxy-A11-M11-Flashable.zip META-INF boot super.new.img.xz
+        # 4. Update the installation tracking text script flags
+        if [ -f "./META-INF/com/google/android/updater-script" ]; then
+          sed -i 's/Lineage-22.2/RisingOS-7.0-Revived/g' ./META-INF/com/google/android/updater-script || true
+          sed -i 's/lineage/risingos/g' ./META-INF/com/google/android/updater-script || true
+        fi
+          
+        # 5. Update the nested Magisk module profiling files
+        MAGISK_PATH=$(find META-INF -type d -name "magisk" | head -n 1)
+        if [ ! -z "$MAGISK_PATH" ]; then
+          cd "$MAGISK_PATH"
+          echo "id=rising_root_profile" > module.prop
+          echo "name=RisingOS 7.0 Core Optimization" >> module.prop
+          echo "version=7.0" >> module.prop
+          echo "versionCode=70" >> module.prop
+          echo "author=BiteTech & Custom Builder" >> module.prop
+          echo "description=System injection layer for RisingOS Revived" >> module.prop
+          echo "ro.rising.version=7.0" >> system.prop
+          echo "persist.sys.rising_perf=1" >> system.prop
+          echo "# RisingOS custom initialization hook" >> customize.sh
+          cd ../../../..
+        fi
+          
+        # 6. Copy your fresh kernel components cleanly (no file extension)
+        cp ../../../boot ./boot || cp ../../../temp/boot ./boot || cp ../../../boot.img ./boot || cp ../../../temp/boot.img ./boot || true
+          
+        # 7. Compress your raw super partition matrix straight to .xz layout using fast level-1
+        if [ -f ../../../super.img ]; then
+          xz -z -1 -c ../../../super.img > ./super.new.img.xz
+        elif [ -f ../../../temp/super.img ]; then
+          xz -z -1 -c ../../../temp/super.img > ./super.new.img.xz
+        else
+          cp ../../../super.new.img.xz ./super.new.img.xz || cp ../../../temp/super.new.img.xz ./super.new.img.xz || true
+        fi
+          
+          # 8. Move up and package the clean folder tree structure into your final ZIP
+          cd ..
+          zip -r ../RisingOS-7.0-Galaxy-A11-M11-Flashable.zip RisingOS-7.0-Galaxy-A11-M11/
           cd ..
 
     - name: Uploading The Zip
