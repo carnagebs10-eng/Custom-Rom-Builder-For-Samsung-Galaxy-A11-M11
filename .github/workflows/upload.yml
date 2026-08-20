@@ -48,21 +48,11 @@ jobs:
     - name: Downloading your GSI
       run: |
         mkdir -p ./temp
-        wget -O ./temp/system.img "${{ github.event.inputs.GSI }}"
+        wget -O ./temp/system.img.xz "${{ github.event.inputs.GSI }}"
 
     - name: Extracting GSI if compressed
       run: |
-        cd ./temp
-        # Check if the downloaded file is actually an XZ compressed archive despite the name
-        if file system.img | grep -q "XZ compressed data"; then
-          echo "Detected XZ archive wrapper. Unpacking..."
-          mv system.img system.img.xz
-          xz -d system.img.xz
-          mv system.img.xz.out system.img || mv system.img.out system.img || true
-        else
-          echo "Detected raw image input stream. Proceeding..."
-        fi
-        cd ..
+        echo "Bypassing workflow extraction to let the builder tool handle system.img.xz natively..."
 
     - name: Building
       run: |
