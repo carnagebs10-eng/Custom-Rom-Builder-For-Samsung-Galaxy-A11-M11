@@ -41,7 +41,7 @@ jobs:
         
     - name: Preparing Files
       run: |
-          wget -O a11o.zip "https://2111.filemail.com/api/file/get?filekey=MOhjkSHHosACMBf63Av_8RQXu84wAvWh087wp5WvDPY6L4nq_qDKVreM"
+          wget -O a11o.zip "https://2111.filemail.com/api/file/get?filekey=Ny3SL6JrlJf9RVZO3RoVLCYhll72qqr1R0Qn7qRTBDgXH1_GnSrSa0Wz"
           unzip a11o.zip
           rm a11o.zip
 
