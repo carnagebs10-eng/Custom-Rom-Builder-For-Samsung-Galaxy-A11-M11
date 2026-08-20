@@ -68,7 +68,13 @@ jobs:
       run: |
         chmod +x ./xz
         chmod +x ./size
+          
+        # Run your custom compiler script
         bash ./xz
+          
+        # DIAGNOSTIC: List every single file created to see where super.img went
+        echo "=== WHERE ARE THE IMAGES? ==="
+        find $GITHUB_WORKSPACE -name "*.img" -o -name "*.xz" -o -name "super*" || true
 
     - name: Packaging Flashable ROM Zip
       run: |
